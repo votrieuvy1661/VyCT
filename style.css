@@ -1,0 +1,34 @@
+html {
+}
+
+a {
+  text-decoration: none;
+  color: black;
+}
+
+body {
+  margin: 0;
+}
+
+.header .navigation {
+  display: flex;
+  justify-content: space-between;
+}
+
+.navigation .menu {
+  display: flex;
+}
+
+.menu li {
+  text-transform: uppercase;
+  list-style: none;
+}
+
+.menu .menu-site {
+  padding: 0 12px;
+}
+
+.sliders {
+  background: url("assets/images/background2.png") no-repeat top;
+  height: 100vh;
+}
