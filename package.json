@@ -3,7 +3,7 @@
     "version": "1.0.0",
     "description": "This is my portfolio",
     "main": "api/index.js",
-    "repository": "https://github.com/votrieuvy1661/votrieuvy1661.github.io.git",
+    "repository": "https://github.com/votrieuvy1661/blog.git",
     "author": "votrieuvy1661 <votrieuvy1661@gmail.com>",
     "license": "MIT",
     "scripts": {
