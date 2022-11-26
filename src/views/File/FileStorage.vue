@@ -27,7 +27,6 @@
                 Chi tiết Liên hệ
                 <i class="fas fa-address-card" />
             </h4>
-            <ContactCard :contact="activeContact" />
             <router-link
                 :to="{
                     name: 'contact.edit',
@@ -41,7 +40,7 @@
         </div>
     </div>
     <div v-if="addModal" class="add-modal">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">Add</h5>
@@ -86,7 +85,11 @@
             </div>
         </div>
     </div>
-    <AddModal :modalType="modelType" @close:modalType="closeSubModel" />
+    <AddModal
+        :modalType="modelType"
+        :data="formData"
+        @close:modalType="closeSubModel"
+    />
 </template>
 <script>
 import ContactList from "@/components/User/UserList.vue";
@@ -103,8 +106,11 @@ export default {
             contacts: [],
             activeIndex: -1,
             searchText: "",
-            modelType: 1, // 1 = folder, 2 = image, 3 = link, 4 = note
+            modelType: 3, // 1 = folder, 2 = image, 3 = link, 4 = note
             addModal: false,
+            formData: {
+                public: false,
+            },
         };
     },
 

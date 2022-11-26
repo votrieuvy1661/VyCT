@@ -8,7 +8,7 @@
                 class="form-control"
                 v-model="userLocal.name"
             />
-            <ErrorMessage name="name" class="error-feedback" />
+            <ErrorMessage name="name" class="text-danger" />
         </div>
         <div class="form-group">
             <label for="username">Username</label>
@@ -18,7 +18,7 @@
                 class="form-control"
                 v-model="userLocal.username"
             />
-            <ErrorMessage name="username" class="error-feedback" />
+            <ErrorMessage name="username" class="text-danger" />
         </div>
         <div class="form-group">
             <label for="passwd">Password</label>
@@ -28,7 +28,7 @@
                 class="form-control"
                 v-model="userLocal.passwd"
             />
-            <ErrorMessage name="passwd" class="error-feedback" />
+            <ErrorMessage name="passwd" class="text-danger" />
         </div>
         <div class="form-group">
             <label for="passwordConfirmation">Comfirm Password</label>
@@ -37,7 +37,7 @@
                 type="password"
                 class="form-control"
             />
-            <ErrorMessage name="passwordConfirmation" class="error-feedback" />
+            <ErrorMessage name="passwordConfirmation" class="text-danger" />
         </div>
         <div class="form-group">
             <button class="btn btn-primary">Create</button>
@@ -83,7 +83,8 @@ export default {
                 .max(20, "This password must have less than 20 characters."),
             passwordConfirmation: yup
                 .string()
-                .oneOf([yup.ref("passwd"), null], "Passwords must match"),
+                .required("Must input comfirm password")
+                .oneOf([yup.ref("passwd")], "Passwords must match"),
         });
         return {
             userLocal: {
