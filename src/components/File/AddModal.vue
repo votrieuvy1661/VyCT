@@ -3,34 +3,21 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5
-                        v-if="modalType === 1"
-                        class="modal-title"
-                        id="exampleModalLabel"
-                    >
+                    <h5 v-if="modalType === 1" class="modal-title">
                         Add folder
                     </h5>
-                    <h5
-                        v-if="modalType === 2"
-                        class="modal-title"
-                        id="exampleModalLabel"
-                    >
+                    <h5 v-if="modalType === 2" class="modal-title">
                         Add image
                     </h5>
-                    <h5
-                        v-if="modalType === 3"
-                        class="modal-title"
-                        id="exampleModalLabel"
-                    >
-                        Add link
-                    </h5>
+                    <h5 v-if="modalType === 3" class="modal-title">Add link</h5>
+                    <h5 v-if="modalType === 4" class="modal-title">Add note</h5>
                     <button type="button" class="close" @click="closeModal">
                         <span class="text-danger">&times;</span>
                     </button>
                 </div>
                 <div class="modal-body">
                     <Form
-                        @submit="submitItem"
+                        @submit="submitData"
                         :validation-schema="dataFormSchema"
                     >
                         <div v-if="modalType !== 2" class="form-group">
@@ -84,30 +71,36 @@
                                 >
                                 </label>
                             </div>
-                            <div
-                                v-if="this.dataLocal.public === true"
-                                class="form-group form-check"
-                            >
-                                <label class="toggler-wrapper w-full">
-                                    <input
-                                        name="usePassword"
-                                        type="checkbox"
-                                        v-model="dataLocal.usePassword"
-                                    />
-                                    <div class="toggler-slider">
-                                        <div class="toggler-knob"></div>
-                                    </div>
-                                    <span class="text-success">
-                                        Use Password
-                                    </span>
-                                </label>
-                                <label
-                                    for="usePassword"
-                                    class="form-check-label text-success"
-                                >
-                                </label>
+                            <div v-if="isPublic">
+                                <div class="form-group form-check">
+                                    <label class="toggler-wrapper w-full">
+                                        <input
+                                            name="color"
+                                            type="color"
+                                            v-model="dataLocal.color"
+                                        />
+                                        <span class="text-success">
+                                            Choose your color link
+                                        </span>
+                                    </label>
+                                </div>
+                                <div class="form-group form-check">
+                                    <label class="toggler-wrapper w-full">
+                                        <input
+                                            name="usePassword"
+                                            type="checkbox"
+                                            v-model="dataLocal.usePassword"
+                                        />
+                                        <div class="toggler-slider">
+                                            <div class="toggler-knob"></div>
+                                        </div>
+                                        <span class="text-success">
+                                            Use Password
+                                        </span>
+                                    </label>
+                                </div>
                             </div>
-                            <div v-if="this.dataLocal.usePassword === true">
+                            <div v-if="this.dataLocal.usePassword">
                                 <div class="form-group">
                                     <label for="passwd">Password</label>
                                     <Field
@@ -137,17 +130,30 @@
                                 </div>
                             </div>
                         </div>
-                        <div v-if="modalType === 2" class="form-group">
-                            <div class="custom-file">
+                        <div
+                            v-if="modalType === 2"
+                            class="form-group d-flex flex-column"
+                        >
+                            <div class="custom-file mb-4">
                                 <input
                                     type="file"
                                     class="custom-file-input"
-                                    @change="addFileName"
+                                    @change="addFile"
+                                    accept="image/*"
                                 />
                                 <label class="custom-file-label">
-                                    Choose file
+                                    Drag and drop your image here
                                 </label>
                             </div>
+                            <img
+                                src="#"
+                                class="align-self-center img-fluid img-thumbnail"
+                                hidden
+                                alt="your image"
+                            />
+                            <span v-if="warningFileSelected" class="text-danger"
+                                >Must select an image</span
+                            >
                         </div>
 
                         <div class="form-group">
@@ -176,14 +182,12 @@ export default {
         Field,
         ErrorMessage,
     },
-    emits: ["close:modalType", "submit:data"],
     props: {
         data: { type: Object, required: true },
         modalType: { type: Number, required: true },
     },
     data() {
         const dataFormSchema = yup.object().shape({
-            modalType: yup.number().required(),
             name: yup.string().when({
                 is: () => this.modalType !== 2,
                 then: yup
@@ -194,7 +198,13 @@ export default {
             }),
             url: yup.string().when({
                 is: () => this.modalType === 3,
-                then: yup.string().required("Must input valid url"),
+                then: yup
+                    .string()
+                    .matches(
+                        /((https?):\/\/)?(www.)?[a-z0-9]+(\.[a-z]{2,}){1,3}(#?\/?[a-zA-Z0-9#]+)*\/?(\?[a-zA-Z0-9-_]+=[a-zA-Z0-9-%]+&?)?/,
+                        "Invalid url!"
+                    )
+                    .required("Must input url"),
             }),
             passwd: yup.string().when({
                 is: () => this.dataLocal.usePassword,
@@ -214,42 +224,61 @@ export default {
                     .required("Must input comfirm password")
                     .oneOf([yup.ref("passwd")], "Passwords must match"),
             }),
-            color: yup.string().when("public", {
-                is: true,
-                then: yup
-                    .string()
-                    .test(
-                        "len",
-                        "Must choose color",
-                        (val) => val.length === 6
-                    ),
+            color: yup.string().when({
+                is: () => this.dataLocal.public && this.dataLocal.usePassword,
+                then: yup.string().required(),
             }),
             content: yup.string().when("modalType", {
                 is: 4,
                 then: yup.string().required("Must input note content"),
             }),
         });
+        var warningFileSelected = false;
         return {
             dataLocal: {
                 ...this.data,
             },
 
             dataFormSchema,
+            warningFileSelected,
         };
     },
+    computed: {
+        isPublic() {
+            return this.dataLocal.public;
+        },
+    },
+    watch: {
+        isPublic(newValue) {
+            if (newValue) {
+                this.dataLocal.color = "#000000";
+            } else {
+                this.dataLocal.usePassword = false;
+            }
+        },
+    },
+    emits: ["close:modalType", "submit:data"],
     methods: {
         closeModal() {
-            this.$emit("close:modalType", 0);
+            this.$emit("close:modalType");
         },
-        addFileName(e) {
+        addFile(e) {
+            this.warningFileSelected = false;
             this.dataLocal.file = e.target.files[0];
             const fileLabel = e.target.nextSibling;
             fileLabel.classList.add("selected");
             fileLabel.innerText = this.dataLocal.file.name;
+            const imgElement = fileLabel.parentElement.nextSibling;
+            imgElement.src = URL.createObjectURL(this.dataLocal.file);
+            imgElement.removeAttribute("hidden");
         },
-        submitItem(e) {
-            console.log(e);
-            this.$emit("submit:data", this.dataLocal);
+        submitData() {
+            //when submit file, need to input file
+            if (this.modalType !== 2 || this.dataLocal.file) {
+                this.$emit("submit:data", this.dataLocal);
+            } else {
+                this.warningFileSelected = true;
+            }
         },
     },
 };

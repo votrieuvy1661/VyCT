@@ -56,28 +56,28 @@
                     <button
                         type="button"
                         class="btn btn-primary"
-                        @click="(modelType = 1), (addModal = false)"
+                        @click="(modalType = 1), (addModal = false)"
                     >
                         <i class="fas fa-plus"></i> New folder
                     </button>
                     <button
                         type="button"
                         class="btn btn-success"
-                        @click="(modelType = 2), (addModal = false)"
+                        @click="(modalType = 2), (addModal = false)"
                     >
                         <i class="fas fa-plus"></i> New image
                     </button>
                     <button
                         type="button"
                         class="btn btn-info"
-                        @click="(modelType = 3), (addModal = false)"
+                        @click="(modalType = 3), (addModal = false)"
                     >
                         <i class="fas fa-plus"></i> New link
                     </button>
                     <button
                         type="button"
                         class="btn btn-warning"
-                        @click="(modelType = 4), (addModal = false)"
+                        @click="(modalType = 4), (addModal = false)"
                     >
                         <i class="fas fa-plus"></i> New note
                     </button>
@@ -86,37 +86,37 @@
         </div>
     </div>
     <AddModal
-        :modalType="modelType"
+        :modalType="modalType"
         :data="formData"
         @close:modalType="closeSubModel"
+        @submit:data="submitData"
     />
 </template>
 <script>
 import ContactList from "@/components/User/UserList.vue";
 import { userService } from "@/services/user.service";
 import AddModal from "@/components/File/AddModal.vue";
+import { linkService } from "@/services/link.service";
+import { folderService } from "@/services/folder.service";
+import { imageService } from "@/services/image.service";
+import { noteService } from "@/services/note.service";
 export default {
     components: {
         ContactList,
         AddModal,
     },
-    // The full code will be presented below
     data() {
         return {
             contacts: [],
             activeIndex: -1,
             searchText: "",
-            modelType: 3, // 1 = folder, 2 = image, 3 = link, 4 = note
+            modalType: 2, // 1 = folder, 2 = image, 3 = link, 4 = note
             addModal: false,
-            formData: {
-                public: false,
-            },
+            formData: {},
         };
     },
 
     watch: {
-        // Monitor changes on searchText.
-        // Release the currently selected contact.
         searchText() {
             this.activeIndex = -1;
         },
@@ -172,8 +172,34 @@ export default {
         goToAddUser() {
             this.$router.push({ name: "user.add" });
         },
-        closeSubModel(modelType) {
-            this.modelType = modelType;
+        closeSubModel() {
+            this.modalType = 0;
+        },
+        async submitData(data) {
+            data.author = 1;
+            try {
+                if (this.modalType === 1) {
+                    const folder = await folderService.create(data);
+                    console.log(folder);
+                }
+                if (this.modalType === 2) {
+                    let file = new FormData();
+                    file.append("file", data.file);
+                    const image = await imageService.create(data);
+                    console.log(image);
+                }
+                if (this.modalType === 3) {
+                    const link = await linkService.create(data);
+                    console.log(link);
+                }
+                if (this.modalType === 4) {
+                    const note = await noteService.create(data);
+                    console.log(note);
+                }
+                this.closeSubModel();
+            } catch (error) {
+                console.log(error);
+            }
         },
     },
     mounted() {

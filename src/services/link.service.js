@@ -1,9 +1,9 @@
 import axios from "axios";
 
 const url = import.meta.env.VITE_APP_API_URL;
-class UserService {
+class LinkService {
     constructor() {
-        this.baseUrl = `${url}/api/user`;
+        this.baseUrl = `${url}/api/link`;
         this.api = axios.create({
             headers: {
                 "Content-Type": "application/json",
@@ -14,8 +14,8 @@ class UserService {
     async getMany() {
         return (await this.api.get(this.baseUrl)).data;
     }
-    async create(user) {
-        return (await this.api.post(this.baseUrl, user)).data; //
+    async create(link) {
+        return (await this.api.post(this.baseUrl, link)).data; //
     }
     async login(user) {
         return (await this.api.get(this.baseUrl, user)).data;
@@ -33,4 +33,4 @@ class UserService {
         return (await this.api.delete(`${this.baseUrl}/${id}`)).data;
     }
 }
-export const userService = new UserService();
+export const linkService = new LinkService();
