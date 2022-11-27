@@ -1,42 +1,48 @@
 <template>
     <div class="page row">
-        <div class="mt-3 col-md-12">
-            <h4>Storage</h4>
-            <ContactList
-                v-if="filteredContactsCount > 0"
-                :contacts="filteredContacts"
+        <div class="mt-3 col-md-11">
+            <div class="d-flex justify-content-between">
+                <h2 class="text-primary">Link</h2>
+                <div v-if="activeIndex !== -1">
+                    <button
+                        class="btn btn-sm btn-primary mr-2"
+                        @click="refreshList()"
+                    >
+                        <i class="fas fa-edit"></i> Edit
+                    </button>
+
+                    <button
+                        class="btn btn-sm btn-danger"
+                        @click="onDeleteLinks"
+                    >
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                    <!-- <router-link
+                        :to="{
+                            name: 'LinkPage',
+                            params: { id: activeLink.id },
+                        }"
+                    >
+                        <span class="mt-1 badge badge-warning">
+                            <i class="fas fa-edit" /> Hiệu chỉnh</span
+                        >
+                    </router-link> -->
+                </div>
+            </div>
+            <LinkList
+                v-if="filteredLinksCount > 0"
+                :links="filteredLinks"
                 v-model:activeIndex="activeIndex"
             />
-            <p v-else>Không có liên hệ nào.</p>
+            <p v-else>There is no link to show</p>
             <div class="mt-3 row justify-content-around align-items-center">
-                <button class="btn btn-sm btn-primary" @click="refreshList()">
-                    <i class="fas fa-redo"></i> Làm mới
-                </button>
                 <button class="btn btn-sm btn-success" @click="addModal = true">
                     <i class="fas fa-plus"></i> Add new
                 </button>
-                <button class="btn btn-sm btn-danger" @click="onDeleteContacts">
-                    <i class="fas fa-trash"></i> Xóa tất cả
+                <button class="btn btn-sm btn-danger" @click="onDeleteLinks">
+                    <i class="fas fa-trash"></i> Delete all
                 </button>
             </div>
-        </div>
-    </div>
-    <div class="mt-3 col-md-6">
-        <div v-if="activeContact">
-            <h4>
-                Chi tiết Liên hệ
-                <i class="fas fa-address-card" />
-            </h4>
-            <router-link
-                :to="{
-                    name: 'contact.edit',
-                    params: { id: activeContact.id },
-                }"
-            >
-                <span class="mt-2 badge badge-warning">
-                    <i class="fas fa-edit" /> Hiệu chỉnh</span
-                >
-            </router-link>
         </div>
     </div>
     <div v-if="addModal" class="add-modal">
@@ -55,29 +61,22 @@
                 <div class="modal-body d-flex justify-content-around w-full">
                     <button
                         type="button"
-                        class="btn btn-primary"
-                        @click="(modalType = 1), (addModal = false)"
-                    >
-                        <i class="fas fa-plus"></i> New folder
-                    </button>
-                    <button
-                        type="button"
                         class="btn btn-success"
-                        @click="(modalType = 2), (addModal = false)"
+                        @click="(modalType = 1), (addModal = false)"
                     >
                         <i class="fas fa-plus"></i> New image
                     </button>
                     <button
                         type="button"
                         class="btn btn-info"
-                        @click="(modalType = 3), (addModal = false)"
+                        @click="(modalType = 2), (addModal = false)"
                     >
                         <i class="fas fa-plus"></i> New link
                     </button>
                     <button
                         type="button"
                         class="btn btn-warning"
-                        @click="(modalType = 4), (addModal = false)"
+                        @click="(modalType = 3), (addModal = false)"
                     >
                         <i class="fas fa-plus"></i> New note
                     </button>
@@ -85,7 +84,7 @@
             </div>
         </div>
     </div>
-    <AddModal
+    <DataModal
         :modalType="modalType"
         :data="formData"
         @close:modalType="closeSubModel"
@@ -93,26 +92,27 @@
     />
 </template>
 <script>
-import ContactList from "@/components/User/UserList.vue";
+import LinkList from "@/components/LinkList.vue";
 import { userService } from "@/services/user.service";
-import AddModal from "@/components/File/AddModal.vue";
+import DataModal from "@/components/DataModal.vue";
 import { linkService } from "@/services/link.service";
-import { folderService } from "@/services/folder.service";
 import { imageService } from "@/services/image.service";
 import { noteService } from "@/services/note.service";
 export default {
     components: {
-        ContactList,
-        AddModal,
+        LinkList,
+        DataModal,
     },
     data() {
         return {
-            contacts: [],
+            Links: [],
             activeIndex: -1,
             searchText: "",
-            modalType: 2, // 1 = folder, 2 = image, 3 = link, 4 = note
+            modalType: 0, // 1 = image, 2 = link, 3 = note
             addModal: false,
-            formData: {},
+            formData: {
+                color: "#aaaaaa",
+            },
         };
     },
 
@@ -122,33 +122,33 @@ export default {
         },
     },
     computed: {
-        // Map contacts to strings for searching.
-        contactsAsStrings() {
-            return this.contacts.map((contact) => {
-                const { name, email, address, phone } = contact;
+        // Map Links to strings for searching.
+        LinksAsStrings() {
+            return this.Links.map((Link) => {
+                const { name, email, address, phone } = Link;
                 return [name, email, address, phone].join("");
             });
         },
-        // Return contacts filtered by the search box.
-        filteredContacts() {
-            if (!this.searchText) return this.contacts;
-            return this.contacts.filter((contact, index) =>
-                this.contactsAsStrings[index].includes(this.searchText)
+        // Return Links filtered by the search box.
+        filteredLinks() {
+            if (!this.searchText) return this.Links;
+            return this.Links.filter((Link, index) =>
+                this.LinksAsStrings[index].includes(this.searchText)
             );
         },
-        activeContact() {
+        activeLink() {
             if (this.activeIndex < 0) return null;
-            return this.filteredContacts[this.activeIndex];
+            return this.filteredLinks[this.activeIndex];
         },
-        filteredContactsCount() {
-            return this.filteredContacts.length;
+        filteredLinksCount() {
+            return this.filteredLinks.length;
         },
     },
     methods: {
-        async retrieveContacts() {
+        async retrieveLinks() {
             try {
-                const contactsList = await userService.getMany();
-                this.contacts = contactsList.sort((current, next) =>
+                const LinksList = await linkService.getMany();
+                this.Links = LinksList.sort((current, next) =>
                     current.name.localeCompare(next.name)
                 );
             } catch (error) {
@@ -156,10 +156,10 @@ export default {
             }
         },
         refreshList() {
-            this.retrieveContacts();
+            this.retrieveLinks();
             this.activeIndex = -1;
         },
-        async onDeleteContacts() {
+        async onDeleteLinks() {
             if (confirm("Bạn muốn xóa tất cả Liên hệ?")) {
                 try {
                     await userService.deleteMany();
@@ -179,20 +179,16 @@ export default {
             data.author = 1;
             try {
                 if (this.modalType === 1) {
-                    const folder = await folderService.create(data);
-                    console.log(folder);
-                }
-                if (this.modalType === 2) {
                     let file = new FormData();
                     file.append("file", data.file);
                     const image = await imageService.create(data);
                     console.log(image);
                 }
-                if (this.modalType === 3) {
+                if (this.modalType === 2) {
                     const link = await linkService.create(data);
                     console.log(link);
                 }
-                if (this.modalType === 4) {
+                if (this.modalType === 3) {
                     const note = await noteService.create(data);
                     console.log(note);
                 }

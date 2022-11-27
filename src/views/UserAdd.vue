@@ -10,7 +10,7 @@
     </div>
 </template>
 <script>
-import UserForm from "@/components/User/UserForm.vue";
+import UserForm from "@/components/UserForm.vue";
 import { userService } from "@/services/user.service";
 export default {
     components: {

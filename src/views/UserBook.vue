@@ -43,7 +43,7 @@
     </div>
 </template>
 <script>
-import ContactList from "@/components/User/UserList.vue";
+import ContactList from "@/components/UserList.vue";
 import { userService } from "@/services/user.service";
 export default {
     components: {

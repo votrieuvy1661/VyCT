@@ -4,13 +4,10 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 v-if="modalType === 1" class="modal-title">
-                        Add folder
-                    </h5>
-                    <h5 v-if="modalType === 2" class="modal-title">
                         Add image
                     </h5>
-                    <h5 v-if="modalType === 3" class="modal-title">Add link</h5>
-                    <h5 v-if="modalType === 4" class="modal-title">Add note</h5>
+                    <h5 v-if="modalType === 2" class="modal-title">Add link</h5>
+                    <h5 v-if="modalType === 3" class="modal-title">Add note</h5>
                     <button type="button" class="close" @click="closeModal">
                         <span class="text-danger">&times;</span>
                     </button>
@@ -20,7 +17,7 @@
                         @submit="submitData"
                         :validation-schema="dataFormSchema"
                     >
-                        <div v-if="modalType !== 2" class="form-group">
+                        <div v-if="modalType !== 1" class="form-group">
                             <label for="name">Name</label>
                             <Field
                                 name="name"
@@ -30,17 +27,44 @@
                             />
                             <ErrorMessage name="name" class="text-danger" />
                         </div>
-                        <div v-if="modalType === 4" class="form-group">
+                        <div v-if="modalType === 3" class="form-group">
                             <label for="content">Content</label>
-                            <Field
+                            <textarea
                                 name="content"
-                                type="text"
+                                rows="8"
                                 class="form-control"
                                 v-model="dataLocal.content"
-                            />
+                            ></textarea>
                             <ErrorMessage name="content" class="text-danger" />
                         </div>
-                        <div v-if="modalType === 3">
+                        <div v-if="modalType === 2">
+                            <div class="form-group form-check">
+                                <label class="w-full text-success">
+                                    <input
+                                        name="color"
+                                        type="color"
+                                        v-model="this.dataLocal.color"
+                                    />
+                                    Choose your color link
+                                </label>
+                            </div>
+                            <ErrorMessage name="color" class="text-danger" />
+
+                            <div class="form-group form-check">
+                                <label class="toggler-wrapper w-full">
+                                    <input
+                                        name="usePassword"
+                                        type="checkbox"
+                                        v-model="dataLocal.usePassword"
+                                    />
+                                    <div class="toggler-slider">
+                                        <div class="toggler-knob"></div>
+                                    </div>
+                                    <span class="text-success">
+                                        Use Password
+                                    </span>
+                                </label>
+                            </div>
                             <div class="form-group">
                                 <label for="url">URL</label>
                                 <Field
@@ -70,35 +94,6 @@
                                     class="form-check-label text-success"
                                 >
                                 </label>
-                            </div>
-                            <div v-if="isPublic">
-                                <div class="form-group form-check">
-                                    <label class="toggler-wrapper w-full">
-                                        <input
-                                            name="color"
-                                            type="color"
-                                            v-model="dataLocal.color"
-                                        />
-                                        <span class="text-success">
-                                            Choose your color link
-                                        </span>
-                                    </label>
-                                </div>
-                                <div class="form-group form-check">
-                                    <label class="toggler-wrapper w-full">
-                                        <input
-                                            name="usePassword"
-                                            type="checkbox"
-                                            v-model="dataLocal.usePassword"
-                                        />
-                                        <div class="toggler-slider">
-                                            <div class="toggler-knob"></div>
-                                        </div>
-                                        <span class="text-success">
-                                            Use Password
-                                        </span>
-                                    </label>
-                                </div>
                             </div>
                             <div v-if="this.dataLocal.usePassword">
                                 <div class="form-group">
@@ -131,7 +126,7 @@
                             </div>
                         </div>
                         <div
-                            v-if="modalType === 2"
+                            v-if="modalType === 1"
                             class="form-group d-flex flex-column"
                         >
                             <div class="custom-file mb-4">
@@ -176,6 +171,7 @@
 <script>
 import * as yup from "yup";
 import { Form, Field, ErrorMessage } from "vee-validate";
+
 export default {
     components: {
         Form,
@@ -189,7 +185,7 @@ export default {
     data() {
         const dataFormSchema = yup.object().shape({
             name: yup.string().when({
-                is: () => this.modalType !== 2,
+                is: () => this.modalType !== 1,
                 then: yup
                     .string()
                     .required("Name must have value.")
@@ -197,12 +193,12 @@ export default {
                     .max(50, "Name must have less than 50 characters."),
             }),
             url: yup.string().when({
-                is: () => this.modalType === 3,
+                is: () => this.modalType === 2,
                 then: yup
                     .string()
                     .matches(
-                        /((https?):\/\/)?(www.)?[a-z0-9]+(\.[a-z]{2,}){1,3}(#?\/?[a-zA-Z0-9#]+)*\/?(\?[a-zA-Z0-9-_]+=[a-zA-Z0-9-%]+&?)?/,
-                        "Invalid url!"
+                        /(https:\/\/)(www.)?[a-z0-9]+(\.[a-z]{2,}){1,3}(#?\/?[a-zA-Z0-9#]+)*\/?(\?[a-zA-Z0-9-_]+=[a-zA-Z0-9-%]+&?)?/,
+                        "Invalid url https://www.example.com!"
                     )
                     .required("Must input url"),
             }),
@@ -224,12 +220,8 @@ export default {
                     .required("Must input comfirm password")
                     .oneOf([yup.ref("passwd")], "Passwords must match"),
             }),
-            color: yup.string().when({
-                is: () => this.dataLocal.public && this.dataLocal.usePassword,
-                then: yup.string().required(),
-            }),
-            content: yup.string().when("modalType", {
-                is: 4,
+            content: yup.string().when({
+                is: () => this.modalType === 3,
                 then: yup.string().required("Must input note content"),
             }),
         });
@@ -242,20 +234,6 @@ export default {
             dataFormSchema,
             warningFileSelected,
         };
-    },
-    computed: {
-        isPublic() {
-            return this.dataLocal.public;
-        },
-    },
-    watch: {
-        isPublic(newValue) {
-            if (newValue) {
-                this.dataLocal.color = "#000000";
-            } else {
-                this.dataLocal.usePassword = false;
-            }
-        },
     },
     emits: ["close:modalType", "submit:data"],
     methods: {
@@ -274,7 +252,8 @@ export default {
         },
         submitData() {
             //when submit file, need to input file
-            if (this.modalType !== 2 || this.dataLocal.file) {
+            if (this.modalType !== 1 || this.dataLocal.file) {
+                console.log(this.dataLocal);
                 this.$emit("submit:data", this.dataLocal);
             } else {
                 this.warningFileSelected = true;

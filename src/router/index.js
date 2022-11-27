@@ -1,6 +1,6 @@
 import { createWebHistory, createRouter } from "vue-router";
-import UserBook from "@/views/User/UserBook.vue";
-import FileStorage from "@/views/File/FileStorage.vue";
+import UserBook from "@/views/UserBook.vue";
+import LinkPage from "@/views/LinkPage.vue";
 
 const routes = [
     {
@@ -11,12 +11,12 @@ const routes = [
     {
         path: "/user/add",
         name: "user.add",
-        component: () => import("@/views/User/UserAdd.vue"),
+        component: () => import("@/views/UserAdd.vue"),
     },
     {
-        path: "/storage",
-        name: "storage",
-        component: FileStorage,
+        path: "/link",
+        name: "link",
+        component: LinkPage,
     },
     {
         path: "/:pathMatch(.*)*",
