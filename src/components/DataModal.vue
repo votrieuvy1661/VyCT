@@ -34,8 +34,11 @@
                                 rows="8"
                                 class="form-control"
                                 v-model="dataLocal.content"
+                                @input="this.warningContent = false"
                             ></textarea>
-                            <ErrorMessage name="content" class="text-danger" />
+                            <span v-if="warningContent" class="text-danger"
+                                >Must input content</span
+                            >
                         </div>
                         <div v-if="modalType === 2">
                             <div class="form-group form-check">
@@ -220,12 +223,9 @@ export default {
                     .required("Must input comfirm password")
                     .oneOf([yup.ref("passwd")], "Passwords must match"),
             }),
-            content: yup.string().when({
-                is: () => this.modalType === 3,
-                then: yup.string().required("Must input note content"),
-            }),
         });
         var warningFileSelected = false;
+        var warningContent = false;
         return {
             dataLocal: {
                 ...this.data,
@@ -233,6 +233,7 @@ export default {
 
             dataFormSchema,
             warningFileSelected,
+            warningContent,
         };
     },
     emits: ["close:modalType", "submit:data"],
@@ -252,11 +253,13 @@ export default {
         },
         submitData() {
             //when submit file, need to input file
-            if (this.modalType !== 1 || this.dataLocal.file) {
+            if (!(this.modalType !== 1 || this.dataLocal.file)) {
                 console.log(this.dataLocal);
-                this.$emit("submit:data", this.dataLocal);
-            } else {
                 this.warningFileSelected = true;
+            } else if (this.modalType === 3 && !this.dataLocal.content) {
+                this.warningContent = true;
+            } else {
+                this.$emit("submit:data", this.dataLocal);
             }
         },
     },

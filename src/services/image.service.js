@@ -22,8 +22,8 @@ class ImageService {
     async deleteMany() {
         return (await this.api.delete(this.baseUrl)).data;
     }
-    async get(id) {
-        return (await this.api.get(`${this.baseUrl}/${id}`)).data;
+    get(name, author) {
+        return `${url}/image/${author}/${name}`;
     }
     async update(id, contact) {
         return (await this.api.put(`${this.baseUrl}/${id}`, contact)).data;

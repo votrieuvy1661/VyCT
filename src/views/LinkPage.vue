@@ -1,6 +1,6 @@
 <template>
     <div class="page row">
-        <div class="mt-3 col-md-11">
+        <div class="mt-3">
             <div class="d-flex justify-content-between">
                 <h2 class="text-primary">Link</h2>
                 <div v-if="activeIndex !== -1">
@@ -29,12 +29,12 @@
                     </router-link> -->
                 </div>
             </div>
-            <LinkList
-                v-if="filteredLinksCount > 0"
-                :links="filteredLinks"
+            <ItemList
+                v-if="filteredItemsCount > 0"
+                :items="filteredItems"
                 v-model:activeIndex="activeIndex"
             />
-            <p v-else>There is no link to show</p>
+            <p v-else>There is no item to show</p>
             <div class="mt-3 row justify-content-around align-items-center">
                 <button class="btn btn-sm btn-success" @click="addModal = true">
                     <i class="fas fa-plus"></i> Add new
@@ -92,7 +92,7 @@
     />
 </template>
 <script>
-import LinkList from "@/components/LinkList.vue";
+import ItemList from "@/components/ItemList.vue";
 import { userService } from "@/services/user.service";
 import DataModal from "@/components/DataModal.vue";
 import { linkService } from "@/services/link.service";
@@ -100,12 +100,12 @@ import { imageService } from "@/services/image.service";
 import { noteService } from "@/services/note.service";
 export default {
     components: {
-        LinkList,
+        ItemList,
         DataModal,
     },
     data() {
         return {
-            Links: [],
+            ItemList: [],
             activeIndex: -1,
             searchText: "",
             modalType: 0, // 1 = image, 2 = link, 3 = note
@@ -123,34 +123,38 @@ export default {
     },
     computed: {
         // Map Links to strings for searching.
-        LinksAsStrings() {
+        ItemsAsStrings() {
             return this.Links.map((Link) => {
                 const { name, email, address, phone } = Link;
                 return [name, email, address, phone].join("");
             });
         },
         // Return Links filtered by the search box.
-        filteredLinks() {
-            if (!this.searchText) return this.Links;
-            return this.Links.filter((Link, index) =>
-                this.LinksAsStrings[index].includes(this.searchText)
+        filteredItems() {
+            if (!this.searchText) return this.ItemList;
+            return this.ItemList.filter((item, index) =>
+                this.ItemsAsStrings[index].includes(this.searchText)
             );
         },
         activeLink() {
             if (this.activeIndex < 0) return null;
-            return this.filteredLinks[this.activeIndex];
+            return this.filteredItems[this.activeIndex];
         },
-        filteredLinksCount() {
-            return this.filteredLinks.length;
+        filteredItemsCount() {
+            return this.ItemList.length;
         },
     },
     methods: {
         async retrieveLinks() {
             try {
                 const LinksList = await linkService.getMany();
-                this.Links = LinksList.sort((current, next) =>
+                const imagesList = await imageService.getMany();
+                const notesList = await noteService.getMany();
+                const ItemList = LinksList.concat(imagesList, notesList);
+                this.ItemList = ItemList.sort((current, next) =>
                     current.name.localeCompare(next.name)
                 );
+                console.log(this.ItemList);
             } catch (error) {
                 console.log(error);
             }
