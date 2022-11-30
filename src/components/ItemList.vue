@@ -45,7 +45,7 @@ export default {
             :title="item.name.slice(10)"
             alt="{{item.name}}"
         />
-        <div v-if="item.type === 3" class="bg-light item">
+        <div v-if="item.type === 3" class="note item">
             <div class="card-body">
                 <h5 class="card-title">{{ item.name }}</h5>
                 <p class="card-text">
@@ -66,18 +66,21 @@ ul {
     mix-blend-mode: hard-light;
     height: 44px;
     line-height: 1.15;
-    margin-bottom: 20px;
     overflow: hidden;
-    text-align: center;
-    width: 100%;
 }
 
 .item {
+    text-align: center;
+    width: 100%;
     border-radius: 8px;
     cursor: pointer;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 }
 .active > .item {
-    box-shadow: 0 8px 10px rgba(20, 100, 150, 0.3);
+    box-shadow: 0 8px 10px rgba(20, 129, 53, 0.3);
+}
+
+.note {
+    background-color: rgba(39, 124, 177, 0.3);
 }
 </style>

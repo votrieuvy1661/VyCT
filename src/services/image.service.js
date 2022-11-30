@@ -13,14 +13,8 @@ class ImageService {
     async getMany() {
         return (await this.api.get(this.baseUrl)).data;
     }
-    async create(user) {
-        return (await this.api.post(this.baseUrl, user)).data;
-    }
-    async login(user) {
-        return (await this.api.get(this.baseUrl, user)).data;
-    }
-    async deleteMany() {
-        return (await this.api.delete(this.baseUrl)).data;
+    async create(image) {
+        return (await this.api.post(this.baseUrl, image)).data;
     }
     get(name, author) {
         return `${url}/image/${author}/${name}`;
@@ -28,8 +22,8 @@ class ImageService {
     async update(id, contact) {
         return (await this.api.put(`${this.baseUrl}/${id}`, contact)).data;
     }
-    async delete(id) {
-        return (await this.api.delete(`${this.baseUrl}/${id}`)).data;
+    async delete(name) {
+        return (await this.api.delete(`${this.baseUrl}/${name}`)).data;
     }
 }
 export const imageService = new ImageService();

@@ -1,12 +1,12 @@
 <template>
-    <div v-if="modalType !== 0" class="add-modal">
+    <div v-if="modalType !== 0" class="link-modal">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 v-if="modalType === 1" class="modal-title">
+                    <h5 v-if="modalType === 1" class="modal-title">Add link</h5>
+                    <h5 v-if="modalType === 2" class="modal-title">
                         Add image
                     </h5>
-                    <h5 v-if="modalType === 2" class="modal-title">Add link</h5>
                     <h5 v-if="modalType === 3" class="modal-title">Add note</h5>
                     <button type="button" class="close" @click="closeModal">
                         <span class="text-danger">&times;</span>
@@ -17,7 +17,7 @@
                         @submit="submitData"
                         :validation-schema="dataFormSchema"
                     >
-                        <div v-if="modalType !== 1" class="form-group">
+                        <div v-if="modalType !== 2" class="form-group">
                             <label for="name">Name</label>
                             <Field
                                 name="name"
@@ -40,7 +40,7 @@
                                 >Must input content</span
                             >
                         </div>
-                        <div v-if="modalType === 2">
+                        <div v-if="modalType === 1">
                             <div class="form-group form-check">
                                 <label class="w-full text-success">
                                     <input
@@ -129,7 +129,7 @@
                             </div>
                         </div>
                         <div
-                            v-if="modalType === 1"
+                            v-if="modalType === 2"
                             class="form-group d-flex flex-column"
                         >
                             <div class="custom-file mb-4">
@@ -185,10 +185,17 @@ export default {
         data: { type: Object, required: true },
         modalType: { type: Number, required: true },
     },
+    watch: {
+        data(newValue) {
+            if (this.modalType === 1 && newValue.color.length === 6)
+                newValue.color = "#" + newValue.color;
+            this.dataLocal = newValue;
+        },
+    },
     data() {
         const dataFormSchema = yup.object().shape({
             name: yup.string().when({
-                is: () => this.modalType !== 1,
+                is: () => this.modalType !== 2,
                 then: yup
                     .string()
                     .required("Name must have value.")
@@ -196,7 +203,7 @@ export default {
                     .max(50, "Name must have less than 50 characters."),
             }),
             url: yup.string().when({
-                is: () => this.modalType === 2,
+                is: () => this.modalType === 1,
                 then: yup
                     .string()
                     .matches(
@@ -236,7 +243,7 @@ export default {
             warningContent,
         };
     },
-    emits: ["close:modalType", "submit:data"],
+    emits: ["close:modalType", "submit:data", "update:data"],
     methods: {
         closeModal() {
             this.$emit("close:modalType");
@@ -253,31 +260,21 @@ export default {
         },
         submitData() {
             //when submit file, need to input file
-            if (!(this.modalType !== 1 || this.dataLocal.file)) {
+            if (!(this.modalType !== 2 || this.dataLocal.file)) {
                 console.log(this.dataLocal);
                 this.warningFileSelected = true;
             } else if (this.modalType === 3 && !this.dataLocal.content) {
                 this.warningContent = true;
-            } else {
+            } else if (!this.dataLocal.id) {
                 this.$emit("submit:data", this.dataLocal);
+            } else {
+                this.$emit("update:data", this.dataLocal);
             }
         },
     },
 };
 </script>
 <style scoped>
-.add-modal {
-    position: fixed;
-    z-index: 1;
-    left: 0;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.4);
-}
-
 .toggler-wrapper input[type="checkbox"] {
     width: 40px;
 }

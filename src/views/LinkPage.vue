@@ -1,32 +1,39 @@
 <template>
     <div class="page row">
         <div class="mt-3">
-            <div class="d-flex justify-content-between">
-                <h2 class="text-primary">Link</h2>
-                <div v-if="activeIndex !== -1">
+            <div class="row sticky-top bg-white py-3 func-bar">
+                <h2 class="text-primary col-2">Link</h2>
+                <button
+                    class="btn btn-xl btn-success col-3"
+                    @click="
+                        (addModal = true),
+                            (this.formData = { color: '#aaaaaa' })
+                    "
+                >
+                    <i class="fas fa-plus"></i> Add new
+                </button>
+                <div
+                    v-if="activeIndex !== -1"
+                    class="d-flex text-secondary col-7 justify-content-end"
+                >
                     <button
+                        v-if="this.activeItem.type !== 2"
                         class="btn btn-sm btn-primary mr-2"
-                        @click="refreshList()"
+                        @click="editModal"
                     >
                         <i class="fas fa-edit"></i> Edit
                     </button>
 
                     <button
-                        class="btn btn-sm btn-danger"
-                        @click="onDeleteLinks"
+                        class="btn btn-xl btn-danger mr-2"
+                        @click="this.showConfirm = true"
                     >
                         <i class="fas fa-trash"></i> Delete
                     </button>
-                    <!-- <router-link
-                        :to="{
-                            name: 'LinkPage',
-                            params: { id: activeLink.id },
-                        }"
-                    >
-                        <span class="mt-1 badge badge-warning">
-                            <i class="fas fa-edit" /> Hiệu chỉnh</span
-                        >
-                    </router-link> -->
+                    <div class="align-self-center">
+                        <i class="fa-regular fa-clock"></i>
+                        {{ ItemList[activeIndex].createAt.substring(0, 10) }}
+                    </div>
                 </div>
             </div>
             <ItemList
@@ -35,17 +42,9 @@
                 v-model:activeIndex="activeIndex"
             />
             <p v-else>There is no item to show</p>
-            <div class="mt-3 row justify-content-around align-items-center">
-                <button class="btn btn-sm btn-success" @click="addModal = true">
-                    <i class="fas fa-plus"></i> Add new
-                </button>
-                <button class="btn btn-sm btn-danger" @click="onDeleteLinks">
-                    <i class="fas fa-trash"></i> Delete all
-                </button>
-            </div>
         </div>
     </div>
-    <div v-if="addModal" class="add-modal">
+    <div v-if="addModal" class="link-modal">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
@@ -61,17 +60,17 @@
                 <div class="modal-body d-flex justify-content-around w-full">
                     <button
                         type="button"
-                        class="btn btn-success"
+                        class="btn btn-primary"
                         @click="(modalType = 1), (addModal = false)"
                     >
-                        <i class="fas fa-plus"></i> New image
+                        <i class="fas fa-plus"></i> New link
                     </button>
                     <button
                         type="button"
-                        class="btn btn-info"
+                        class="btn btn-success"
                         @click="(modalType = 2), (addModal = false)"
                     >
-                        <i class="fas fa-plus"></i> New link
+                        <i class="fas fa-plus"></i> New image
                     </button>
                     <button
                         type="button"
@@ -89,30 +88,40 @@
         :data="formData"
         @close:modalType="closeSubModel"
         @submit:data="submitData"
+        @update:data="updateData"
+    />
+
+    <ConfirmModal
+        v-if="showConfirm"
+        @check="deleteItem"
+        :field="field[activeItem.type]"
+        :type="'Delete'"
     />
 </template>
 <script>
 import ItemList from "@/components/ItemList.vue";
-import { userService } from "@/services/user.service";
 import DataModal from "@/components/DataModal.vue";
 import { linkService } from "@/services/link.service";
 import { imageService } from "@/services/image.service";
 import { noteService } from "@/services/note.service";
+import ConfirmModal from "@/components/ConfirmModal.vue";
+
 export default {
     components: {
         ItemList,
         DataModal,
+        ConfirmModal,
     },
     data() {
         return {
             ItemList: [],
             activeIndex: -1,
             searchText: "",
-            modalType: 0, // 1 = image, 2 = link, 3 = note
+            modalType: 0, // 1 = link, 2 = image, 3 = note
             addModal: false,
-            formData: {
-                color: "#aaaaaa",
-            },
+            formData: {},
+            field: ["user", "link", "image", "note"],
+            showConfirm: false,
         };
     },
 
@@ -136,7 +145,7 @@ export default {
                 this.ItemsAsStrings[index].includes(this.searchText)
             );
         },
-        activeLink() {
+        activeItem() {
             if (this.activeIndex < 0) return null;
             return this.filteredItems[this.activeIndex];
         },
@@ -154,23 +163,34 @@ export default {
                 this.ItemList = ItemList.sort((current, next) =>
                     current.name.localeCompare(next.name)
                 );
-                console.log(this.ItemList);
             } catch (error) {
                 console.log(error);
             }
         },
+
         refreshList() {
             this.retrieveLinks();
             this.activeIndex = -1;
         },
-        async onDeleteLinks() {
-            if (confirm("Bạn muốn xóa tất cả Liên hệ?")) {
-                try {
-                    await userService.deleteMany();
-                    this.refreshList();
-                } catch (error) {
-                    console.log(error);
+        async deleteItem(confirm) {
+            if (confirm) {
+                if (this.activeItem.type === 1) {
+                    const link = await linkService.delete(this.activeItem.id);
+                    console.log(link);
                 }
+                if (this.activeItem.type === 2) {
+                    await imageService.delete(this.activeItem.id);
+                }
+                if (this.activeItem.type === 3) {
+                    const note = await noteService.delete(this.activeItem.id);
+                    console.log(note);
+                }
+                this.ItemList = this.ItemList.filter(
+                    (element, index) => index !== this.activeIndex
+                );
+                this.showConfirm = false;
+            } else {
+                this.showConfirm = false;
             }
         },
         goToAddUser() {
@@ -183,23 +203,42 @@ export default {
             data.author = 1;
             try {
                 if (this.modalType === 1) {
+                    const link = await linkService.create(data);
+                    console.log(link);
+                    this.ItemList.push(link);
+                }
+                if (this.modalType === 2) {
                     let file = new FormData();
                     file.append("file", data.file);
                     const image = await imageService.create(data);
-                    console.log(image);
-                }
-                if (this.modalType === 2) {
-                    const link = await linkService.create(data);
-                    console.log(link);
+                    this.ItemList.push(image);
                 }
                 if (this.modalType === 3) {
                     const note = await noteService.create(data);
                     console.log(note);
+                    this.ItemList.push(note);
                 }
                 this.closeSubModel();
             } catch (error) {
                 console.log(error);
             }
+        },
+        async updateData(data) {
+            try {
+                if (this.modalType === 1) {
+                    await linkService.update(data);
+                } else if (this.modalType === 3) {
+                    await noteService.update(data);
+                }
+                this.ItemList[this.activeIndex] = data;
+                this.closeSubModel();
+            } catch (error) {
+                console.log(error);
+            }
+        },
+        editModal() {
+            this.formData = this.activeItem;
+            this.modalType = this.activeItem.type;
         },
     },
     mounted() {
@@ -212,9 +251,9 @@ export default {
     text-align: left;
     max-width: 750px;
 }
-.add-modal {
+.link-modal {
     position: fixed;
-    z-index: 1;
+    z-index: 1055;
     left: 0;
     top: 0;
     right: 0;
@@ -222,5 +261,11 @@ export default {
     width: 100%;
     height: 100%;
     background-color: rgba(0, 0, 0, 0.4);
+}
+
+.func-bar {
+    top: 4rem;
+    right: 0;
+    left: 0;
 }
 </style>

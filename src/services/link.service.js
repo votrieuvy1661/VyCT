@@ -15,19 +15,13 @@ class LinkService {
         return (await this.api.get(this.baseUrl)).data;
     }
     async create(link) {
-        return (await this.api.post(this.baseUrl, link)).data; //
-    }
-    async login(user) {
-        return (await this.api.get(this.baseUrl, user)).data;
-    }
-    async deleteMany() {
-        return (await this.api.delete(this.baseUrl)).data;
+        return (await this.api.post(this.baseUrl, link)).data;
     }
     async get(id) {
         return (await this.api.get(`${this.baseUrl}/${id}`)).data;
     }
-    async update(id, contact) {
-        return (await this.api.put(`${this.baseUrl}/${id}`, contact)).data;
+    async update(link) {
+        return (await this.api.put(`${this.baseUrl}/${link.id}`, link)).data;
     }
     async delete(id) {
         return (await this.api.delete(`${this.baseUrl}/${id}`)).data;

@@ -14,8 +14,8 @@ class NoteService {
     async getMany() {
         return (await this.api.get(this.baseUrl)).data;
     }
-    async create(user) {
-        return (await this.api.post(this.baseUrl, user)).data;
+    async create(note) {
+        return (await this.api.post(this.baseUrl, note)).data;
     }
     async login(user) {
         return (await this.api.get(this.baseUrl, user)).data;
@@ -26,8 +26,8 @@ class NoteService {
     async get(id) {
         return (await this.api.get(`${this.baseUrl}/${id}`)).data;
     }
-    async update(id, contact) {
-        return (await this.api.put(`${this.baseUrl}/${id}`, contact)).data;
+    async update(note) {
+        return (await this.api.put(`${this.baseUrl}/${note.id}`, note)).data;
     }
     async delete(id) {
         return (await this.api.delete(`${this.baseUrl}/${id}`)).data;
