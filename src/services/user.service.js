@@ -1,6 +1,8 @@
 import axios from "axios";
 
 const url = import.meta.env.VITE_APP_API_URL;
+const tokenName = import.meta.env.VITE_APP_TOKEN_NAME;
+const userToken = localStorage.getItem(tokenName);
 class UserService {
     constructor() {
         this.baseUrl = `${url}/api/user`;
@@ -10,24 +12,23 @@ class UserService {
                 Accept: "application/json",
             },
         });
-    }
-    async getMany() {
-        return (await this.api.get(this.baseUrl)).data;
-    }
-    async create(user) {
-        return (await this.api.post(this.baseUrl, user)).data; //
+        this.fileApi = axios.create({
+            headers: {
+                "Content-Type": "multipart/form-data",
+                Authorization: `Bearer ${userToken}`,
+            },
+        });
     }
     async login(user) {
-        return (await this.api.get(this.baseUrl, user)).data;
-    }
-    async deleteMany() {
-        return (await this.api.delete(this.baseUrl)).data;
+        let result = await this.api.post(this.baseUrl, user);
+        localStorage.setItem(tokenName, result.data.token);
+        return result.data.user;
     }
     async get(id) {
         return (await this.api.get(`${this.baseUrl}/${id}`)).data;
     }
     async update(id, contact) {
-        return (await this.api.put(`${this.baseUrl}/${id}`, contact)).data;
+        return (await this.fileApi.put(`${this.baseUrl}/${id}`, contact)).data;
     }
     async delete(id) {
         return (await this.api.delete(`${this.baseUrl}/${id}`)).data;

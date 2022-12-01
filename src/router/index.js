@@ -4,17 +4,33 @@ import LinkPage from "@/views/LinkPage.vue";
 
 const routes = [
     {
-        path: "/user",
-        name: "hello",
+        path: "/",
+        name: "home",
+        component: () => import("@/views/HomePage.vue"),
+    },
+    {
+        path: "/login",
+        name: "login",
+        component: () => import("@/views/LoginPage.vue"),
+    },
+    {
+        path: "/admin",
+        name: "admin",
         component: UserBook,
     },
     {
-        path: "/user/add",
+        path: "/admin/add",
         name: "user.add",
         component: () => import("@/views/UserAdd.vue"),
     },
     {
-        path: "/link",
+        path: "/user/:id",
+        name: "user.edit",
+        component: () => import("@/views/UserEdit.vue"),
+        props: (route) => ({ userId: parseInt(route.params.id) }),
+    },
+    {
+        path: "/links",
         name: "link",
         component: LinkPage,
     },

@@ -1,13 +1,13 @@
 <template>
-    <div v-if="user" class="page">
-        <h4>Create user</h4>
-        <UserForm :user="user" :type="'create'" @submit:user="onCreateUser" />
+    <div class="page">
+        <h4>Login</h4>
+        <UserForm :user="user" :type="'login'" @submit:user="login" />
         <p>{{ message }}</p>
     </div>
 </template>
 <script>
 import UserForm from "@/components/UserForm.vue";
-import { aduserService } from "@/services/aduser.service";
+import { userService } from "@/services/user.service";
 export default {
     components: {
         UserForm,
@@ -16,20 +16,17 @@ export default {
         return {
             message: "",
             user: {
-                name: "",
                 username: "",
                 passwd: "",
             },
         };
     },
     methods: {
-        async onCreateUser(user) {
+        async login(user) {
+            this.message = "";
             try {
-                this.user = await aduserService.create(user);
-                this.message = "User account has been added successfully.";
-                setTimeout(() => {
-                    this.$router.push({ name: "admin" });
-                }, 3000);
+                await userService.login(user);
+                this.$router.push({ name: "link" });
             } catch (error) {
                 this.message = error.response?.data?.message;
             }

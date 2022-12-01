@@ -1,6 +1,6 @@
 <template>
     <Form @submit="submitUser" :validation-schema="userFormSchema">
-        <div class="form-group">
+        <div v-if="type !== 'login'" class="form-group">
             <label for="name">Name</label>
             <Field
                 name="name"
@@ -10,7 +10,7 @@
             />
             <ErrorMessage name="name" class="text-danger" />
         </div>
-        <div class="form-group">
+        <div v-if="type !== 'edit'" class="form-group">
             <label for="username">Username</label>
             <Field
                 name="username"
@@ -30,7 +30,7 @@
             />
             <ErrorMessage name="passwd" class="text-danger" />
         </div>
-        <div class="form-group">
+        <div v-if="type !== 'login'" class="form-group">
             <label for="passwordConfirmation">Comfirm Password</label>
             <Field
                 name="passwordConfirmation"
@@ -40,12 +40,12 @@
             <ErrorMessage name="passwordConfirmation" class="text-danger" />
         </div>
         <div class="form-group">
-            <button class="btn btn-primary">Create</button>
+            <button class="btn btn-primary">Submit</button>
             <button
-                v-if="userLocal.id"
+                v-if="userLocal.id && this.type === 'edit'"
                 type="button"
                 class="ml-2 btn btn-danger"
-                @click="deleteContact"
+                @click="deleteUser"
             >
                 Xóa
             </button>
@@ -64,14 +64,18 @@ export default {
     emits: ["submit:user", "delete:user"],
     props: {
         user: { type: Object, required: true },
+        type: { type: String, required: true },
     },
     data() {
         const userFormSchema = yup.object().shape({
-            name: yup
-                .string()
-                .required("Name must have value.")
-                .min(2, "Name must have at least 2 characters.")
-                .max(50, "Name must have less than 50 characters."),
+            name: yup.string().when({
+                is: () => this.type !== "login",
+                then: yup
+                    .string()
+                    .required("Name must have value.")
+                    .min(2, "Name must have at least 2 characters.")
+                    .max(50, "Name must have less than 50 characters."),
+            }),
             username: yup
                 .string()
                 .required("You need to input username.")
@@ -81,10 +85,13 @@ export default {
                 .string()
                 .min(4, "This password must have at least 4 characters.")
                 .max(20, "This password must have less than 20 characters."),
-            passwordConfirmation: yup
-                .string()
-                .required("Must input comfirm password")
-                .oneOf([yup.ref("passwd")], "Passwords must match"),
+            passwordConfirmation: yup.string().when({
+                is: () => this.type !== "login",
+                then: yup
+                    .string()
+                    .required("Must input comfirm password")
+                    .oneOf([yup.ref("passwd")], "Passwords must match"),
+            }),
         });
         return {
             userLocal: {

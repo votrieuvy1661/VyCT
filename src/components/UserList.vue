@@ -1,7 +1,7 @@
 <script>
 export default {
     props: {
-        contacts: { type: Array, default: () => [] },
+        users: { type: Array, default: () => [] },
         activeIndex: { type: Number, default: -1 },
     },
     emits: ["update:activeIndex"],
@@ -15,13 +15,15 @@ export default {
 <template>
     <ul class="list-group">
         <li
-            class="list-group-item"
-            v-for="(contact, index) in contacts"
-            :key="contact.id"
+            class="list-group-item d-flex justify-content-between"
+            v-for="(user, index) in users"
+            :key="user.id"
             :class="{ active: index === activeIndex }"
             @click="updateActiveIndex(index)"
         >
-            {{ contact.name }}
+            <strong>
+                {{ user.name }}
+            </strong>
         </li>
     </ul>
 </template>

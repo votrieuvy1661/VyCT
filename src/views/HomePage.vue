@@ -5,7 +5,6 @@
         </div>
         <div class="mt-3">
             <div class="row sticky-top bg-white py-3 func-bar">
-                <h2 class="text-primary col-2">Link</h2>
                 <button
                     class="btn btn-xl btn-success col-3"
                     @click="
@@ -18,7 +17,7 @@
 
                 <div
                     v-if="activeIndex !== -1"
-                    class="d-flex text-secondary col-7 justify-content-end"
+                    class="d-flex text-secondary col-9 justify-content-end"
                 >
                     <button
                         v-if="this.activeItem.type !== 2"
@@ -162,10 +161,10 @@ export default {
     methods: {
         async retrieveLinks() {
             try {
-                const LinksList = await linkService.getMany();
+                const linksList = await linkService.getMany();
                 const imagesList = await imageService.getMany();
                 const notesList = await noteService.getMany();
-                const ItemList = LinksList.concat(imagesList, notesList);
+                const ItemList = linksList.concat(imagesList, notesList);
                 this.ItemList = ItemList.sort((current, next) =>
                     current.name.localeCompare(next.name)
                 );
