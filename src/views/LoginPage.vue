@@ -8,6 +8,7 @@
 <script>
 import UserForm from "@/components/UserForm.vue";
 import { userService } from "@/services/user.service";
+
 export default {
     components: {
         UserForm,
@@ -26,7 +27,7 @@ export default {
             this.message = "";
             try {
                 await userService.login(user);
-                this.$router.push({ name: "link" });
+                this.$router.push({ name: "item" });
             } catch (error) {
                 this.message = error.response?.data?.message;
             }

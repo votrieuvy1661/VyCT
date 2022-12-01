@@ -1,6 +1,6 @@
 <template>
     <Form @submit="submitUser" :validation-schema="userFormSchema">
-        <div v-if="type !== 'login'" class="form-group">
+        <div v-if="type !== 'login'" class="form-group mt-4">
             <label for="name">Name</label>
             <Field
                 name="name"
@@ -10,7 +10,7 @@
             />
             <ErrorMessage name="name" class="text-danger" />
         </div>
-        <div v-if="type !== 'edit'" class="form-group">
+        <div v-if="type !== 'edit'" class="form-group mt-4">
             <label for="username">Username</label>
             <Field
                 name="username"
@@ -20,7 +20,7 @@
             />
             <ErrorMessage name="username" class="text-danger" />
         </div>
-        <div class="form-group">
+        <div class="form-group mt-4">
             <label for="passwd">Password</label>
             <Field
                 name="passwd"
@@ -30,7 +30,7 @@
             />
             <ErrorMessage name="passwd" class="text-danger" />
         </div>
-        <div v-if="type !== 'login'" class="form-group">
+        <div v-if="type !== 'login'" class="form-group mt-4">
             <label for="passwordConfirmation">Comfirm Password</label>
             <Field
                 name="passwordConfirmation"
@@ -39,7 +39,7 @@
             />
             <ErrorMessage name="passwordConfirmation" class="text-danger" />
         </div>
-        <div class="form-group">
+        <div class="form-group mt-4">
             <button class="btn btn-primary">Submit</button>
             <button
                 v-if="userLocal.id && this.type === 'edit'"
@@ -111,6 +111,3 @@ export default {
     },
 };
 </script>
-<style scoped>
-@import "@/assets/form.css";
-</style>

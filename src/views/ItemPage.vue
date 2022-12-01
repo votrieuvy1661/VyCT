@@ -1,11 +1,7 @@
 <template>
     <div class="page">
-        <div class="">
-            <InputSearch v-model="searchText" />
-        </div>
         <div class="mt-3">
-            <div class="row sticky-top bg-white py-3 func-bar">
-                <h2 class="text-primary col-2">Link</h2>
+            <div class="row sticky-top bg-white py-3 mx-0 func-bar">
                 <button
                     class="btn btn-xl btn-success col-3"
                     @click="
@@ -18,7 +14,7 @@
 
                 <div
                     v-if="activeIndex !== -1"
-                    class="d-flex text-secondary col-7 justify-content-end"
+                    class="d-flex text-secondary col-9 pr-0 justify-content-end"
                 >
                     <button
                         v-if="this.activeItem.type !== 2"
@@ -45,7 +41,7 @@
                 :items="filteredItems"
                 v-model:activeIndex="activeIndex"
             />
-            <p v-else>There is no item to show</p>
+            <p v-else>{{ message }}</p>
         </div>
     </div>
     <div v-if="addModal" class="link-modal">
@@ -105,10 +101,11 @@
 <script>
 import ItemList from "@/components/ItemList.vue";
 import DataModal from "@/components/DataModal.vue";
-import InputSearch from "@/components/InputSearch.vue";
 import { linkService } from "@/services/link.service";
 import { imageService } from "@/services/image.service";
 import { noteService } from "@/services/note.service";
+import { useSearchStore } from "@/stores/search";
+import { mapState } from "pinia";
 import ConfirmModal from "@/components/ConfirmModal.vue";
 
 export default {
@@ -116,7 +113,6 @@ export default {
         ItemList,
         DataModal,
         ConfirmModal,
-        InputSearch,
     },
     data() {
         return {
@@ -128,6 +124,7 @@ export default {
             formData: {},
             field: ["user", "link", "image", "note"],
             showConfirm: false,
+            message: "",
         };
     },
 
@@ -135,8 +132,12 @@ export default {
         searchText() {
             this.activeIndex = -1;
         },
+        searchTextStore(newValue) {
+            this.searchText = newValue;
+        },
     },
     computed: {
+        ...mapState(useSearchStore, ["searchTextStore"]),
         // Map Links to strings for searching.
         ItemsAsStrings() {
             return this.ItemList.map((Item) => {
@@ -166,9 +167,13 @@ export default {
                 const imagesList = await imageService.getMany();
                 const notesList = await noteService.getMany();
                 const ItemList = LinksList.concat(imagesList, notesList);
-                this.ItemList = ItemList.sort((current, next) =>
-                    current.name.localeCompare(next.name)
-                );
+                if (ItemList.length) {
+                    this.ItemList = ItemList.sort((current, next) =>
+                        current.name.localeCompare(next.name)
+                    );
+                } else {
+                    this.message = "There is no item to show";
+                }
             } catch (error) {
                 console.log(error);
             }
@@ -210,7 +215,6 @@ export default {
             try {
                 if (this.modalType === 1) {
                     const link = await linkService.create(data);
-                    console.log(link);
                     this.ItemList.push(link);
                 }
                 if (this.modalType === 2) {
@@ -221,7 +225,6 @@ export default {
                 }
                 if (this.modalType === 3) {
                     const note = await noteService.create(data);
-                    console.log(note);
                     this.ItemList.push(note);
                 }
                 this.closeSubModel();

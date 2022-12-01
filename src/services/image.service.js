@@ -2,7 +2,8 @@ import axios from "axios";
 
 const url = import.meta.env.VITE_APP_API_URL;
 const tokenName = import.meta.env.VITE_APP_TOKEN_NAME;
-const adminToken = localStorage.getItem(tokenName);
+const userStoreName = import.meta.env.VITE_APP_STORE;
+const userToken = localStorage.getItem(tokenName);
 
 class ImageService {
     constructor() {
@@ -10,14 +11,14 @@ class ImageService {
         this.fileApi = axios.create({
             headers: {
                 "Content-Type": "multipart/form-data",
-                Authorization: `Bearer ${adminToken}`,
+                Authorization: `Bearer ${userToken}`,
             },
         });
         this.api = axios.create({
             headers: {
                 "Content-Type": "application/json",
                 Accept: "application/json",
-                Authorization: `Bearer ${adminToken}`,
+                Authorization: `Bearer ${userToken}`,
             },
         });
     }
@@ -28,11 +29,16 @@ class ImageService {
         return (await this.fileApi.post(this.baseUrl, image)).data;
     }
     get(name, author) {
-        return `${url}/image/${author}/${name}`;
+        if (name && author && userToken)
+            return `${url}/image/${author}/${name}`;
+        return null;
     }
-    async update(id, contact) {
-        return (await this.api.put(`${this.baseUrl}/${id}`, contact)).data;
+
+    async logout() {
+        localStorage.removeItem(tokenName);
+        localStorage.removeItem(userStoreName);
     }
+
     async delete(name) {
         return (await this.api.delete(`${this.baseUrl}/${name}`)).data;
     }

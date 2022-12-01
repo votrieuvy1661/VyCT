@@ -1,6 +1,9 @@
 import axios from "axios";
 
 const url = import.meta.env.VITE_APP_API_URL;
+const tokenName = import.meta.env.VITE_APP_TOKEN_NAME;
+const userToken = localStorage.getItem(tokenName);
+
 class NoteService {
     constructor() {
         this.baseUrl = `${url}/api/note`;
@@ -8,6 +11,7 @@ class NoteService {
             headers: {
                 "Content-Type": "application/json",
                 Accept: "application/json",
+                Authorization: `Bearer ${userToken}`,
             },
         });
     }

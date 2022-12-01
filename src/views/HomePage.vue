@@ -1,99 +1,24 @@
 <template>
     <div class="page">
-        <div class="">
-            <InputSearch v-model="searchText" />
-        </div>
         <div class="mt-3">
-            <div class="row sticky-top bg-white py-3 func-bar">
-                <button
-                    class="btn btn-xl btn-success col-3"
-                    @click="
-                        (addModal = true),
-                            (this.formData = { color: '#aaaaaa' })
-                    "
-                >
-                    <i class="fas fa-plus"></i> Add new
-                </button>
-
-                <div
-                    v-if="activeIndex !== -1"
-                    class="d-flex text-secondary col-9 justify-content-end"
+            <div v-if="filteredItemsCount > 0">
+                <ul
+                    v-for="(item, index) in filteredItems"
+                    :key="item.id"
+                    class="my-4 d-flex flex-column align-items-center"
+                    @click="handleDbClick(index)"
                 >
                     <button
-                        v-if="this.activeItem.type !== 2"
-                        class="btn btn-sm btn-primary mr-2"
-                        @click="editModal"
+                        class="link item"
+                        :style="{ background: `#${item.color}` }"
                     >
-                        <i class="fas fa-edit"></i> Edit
+                        {{ item.name }}
                     </button>
-
-                    <button
-                        class="btn btn-xl btn-danger mr-2"
-                        @click="this.showConfirm = true"
-                    >
-                        <i class="fas fa-trash"></i> Delete
-                    </button>
-                    <div class="align-self-center">
-                        <i class="fa-regular fa-clock"></i>
-                        {{ ItemList[activeIndex].createAt.substring(0, 10) }}
-                    </div>
-                </div>
+                </ul>
             </div>
-            <ItemList
-                v-if="filteredItemsCount > 0"
-                :items="filteredItems"
-                v-model:activeIndex="activeIndex"
-            />
             <p v-else>There is no item to show</p>
         </div>
     </div>
-    <div v-if="addModal" class="link-modal">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Add</h5>
-                    <button
-                        type="button"
-                        class="close"
-                        @click="addModal = false"
-                    >
-                        <span class="text-danger">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body d-flex justify-content-around w-full">
-                    <button
-                        type="button"
-                        class="btn btn-primary"
-                        @click="(modalType = 1), (addModal = false)"
-                    >
-                        <i class="fas fa-plus"></i> New link
-                    </button>
-                    <button
-                        type="button"
-                        class="btn btn-success"
-                        @click="(modalType = 2), (addModal = false)"
-                    >
-                        <i class="fas fa-plus"></i> New image
-                    </button>
-                    <button
-                        type="button"
-                        class="btn btn-warning"
-                        @click="(modalType = 3), (addModal = false)"
-                    >
-                        <i class="fas fa-plus"></i> New note
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-    <DataModal
-        :modalType="modalType"
-        :data="formData"
-        @close:modalType="closeSubModel"
-        @submit:data="submitData"
-        @update:data="updateData"
-    />
-
     <ConfirmModal
         v-if="showConfirm"
         @check="deleteItem"
@@ -102,20 +27,16 @@
     />
 </template>
 <script>
-import ItemList from "@/components/ItemList.vue";
-import DataModal from "@/components/DataModal.vue";
-import InputSearch from "@/components/InputSearch.vue";
 import { linkService } from "@/services/link.service";
 import { imageService } from "@/services/image.service";
 import { noteService } from "@/services/note.service";
+import { useSearchStore } from "@/stores/search";
+import { mapState } from "pinia";
 import ConfirmModal from "@/components/ConfirmModal.vue";
 
 export default {
     components: {
-        ItemList,
-        DataModal,
         ConfirmModal,
-        InputSearch,
     },
     data() {
         return {
@@ -134,8 +55,12 @@ export default {
         searchText() {
             this.activeIndex = -1;
         },
+        searchTextStore(newValue) {
+            this.searchText = newValue;
+        },
     },
     computed: {
+        ...mapState(useSearchStore, ["searchTextStore"]),
         // Map Links to strings for searching.
         ItemsAsStrings() {
             return this.ItemList.map((Item) => {
@@ -161,11 +86,8 @@ export default {
     methods: {
         async retrieveLinks() {
             try {
-                const linksList = await linkService.getMany();
-                const imagesList = await imageService.getMany();
-                const notesList = await noteService.getMany();
-                const ItemList = linksList.concat(imagesList, notesList);
-                this.ItemList = ItemList.sort((current, next) =>
+                const linksList = await linkService.guest();
+                this.ItemList = linksList.sort((current, next) =>
                     current.name.localeCompare(next.name)
                 );
             } catch (error) {
@@ -176,30 +98,6 @@ export default {
         refreshList() {
             this.retrieveLinks();
             this.activeIndex = -1;
-        },
-        async deleteItem(confirm) {
-            if (confirm) {
-                if (this.activeItem.type === 1) {
-                    const link = await linkService.delete(this.activeItem.id);
-                    console.log(link);
-                }
-                if (this.activeItem.type === 2) {
-                    await imageService.delete(this.activeItem.id);
-                }
-                if (this.activeItem.type === 3) {
-                    const note = await noteService.delete(this.activeItem.id);
-                    console.log(note);
-                }
-                this.ItemList = this.ItemList.filter(
-                    (element, index) => index !== this.activeIndex
-                );
-                this.showConfirm = false;
-            } else {
-                this.showConfirm = false;
-            }
-        },
-        goToAddUser() {
-            this.$router.push({ name: "user.add" });
         },
         closeSubModel() {
             this.modalType = 0;
@@ -223,19 +121,6 @@ export default {
                     console.log(note);
                     this.ItemList.push(note);
                 }
-                this.closeSubModel();
-            } catch (error) {
-                console.log(error);
-            }
-        },
-        async updateData(data) {
-            try {
-                if (this.modalType === 1) {
-                    await linkService.update(data);
-                } else if (this.modalType === 3) {
-                    await noteService.update(data);
-                }
-                this.ItemList[this.activeIndex] = data;
                 this.closeSubModel();
             } catch (error) {
                 console.log(error);
@@ -266,6 +151,23 @@ export default {
     width: 100%;
     height: 100%;
     background-color: rgba(0, 0, 0, 0.4);
+}
+
+.link {
+    border-width: 0;
+    color: #9b9b9b;
+    mix-blend-mode: hard-light;
+    height: 44px;
+    line-height: 1.15;
+    overflow: hidden;
+}
+
+.item {
+    text-align: center;
+    width: 100%;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 }
 
 .func-bar {

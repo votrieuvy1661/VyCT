@@ -1,8 +1,5 @@
 <template>
     <div class="page row">
-        <div class="col-md-10">
-            <InputSearch v-model="searchText" />
-        </div>
         <div class="mt-3 col-md-6">
             <h4>Admin</h4>
             <UserList
@@ -26,7 +23,14 @@
                     User detail
                     <i class="fas fa-address-card"></i>
                 </h4>
-                <UserCard :user="activeUser" />
+                <div class="p-1">
+                    <strong>Name:</strong>
+                    {{ activeUser.name }}
+                </div>
+                <div class="p-1">
+                    <strong>Username:</strong>
+                    {{ activeUser.username }}
+                </div>
                 <router-link
                     :to="{
                         name: 'user.edit',
@@ -43,14 +47,13 @@
 </template>
 <script>
 import UserList from "@/components/UserList.vue";
-import UserCard from "@/components/UserCard.vue";
-import InputSearch from "@/components/InputSearch.vue";
 import { aduserService } from "@/services/aduser.service";
+import { useSearchStore } from "@/stores/search";
+import { mapState } from "pinia";
+
 export default {
     components: {
         UserList,
-        UserCard,
-        InputSearch,
     },
     // The full code will be presented below
     data() {
@@ -60,15 +63,18 @@ export default {
             searchText: "",
         };
     },
-
     watch: {
         // Monitor changes on searchText.
         // Release the currently selected user.
         searchText() {
             this.activeIndex = -1;
         },
+        searchTextStore(newValue) {
+            this.searchText = newValue;
+        },
     },
     computed: {
+        ...mapState(useSearchStore, ["searchTextStore"]),
         // Map users to strings for searching.
         usersAsStrings() {
             return this.users.map((user) => {

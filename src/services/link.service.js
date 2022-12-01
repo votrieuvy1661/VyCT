@@ -2,6 +2,7 @@ import axios from "axios";
 
 const url = import.meta.env.VITE_APP_API_URL;
 const tokenName = import.meta.env.VITE_APP_TOKEN_NAME;
+const userToken = localStorage.getItem(tokenName);
 
 class LinkService {
     constructor() {
@@ -10,6 +11,7 @@ class LinkService {
             headers: {
                 "Content-Type": "application/json",
                 Accept: "application/json",
+                Authorization: `Bearer ${userToken}`,
             },
         });
     }
@@ -17,16 +19,13 @@ class LinkService {
         return (await this.api.get(this.baseUrl)).data;
     }
     async create(link) {
-        const userToken = localStorage.getItem(tokenName);
-
-        return (
-            await this.api.post(this.baseUrl, link, {
-                headers: { Authorization: `Bearer ${userToken}` },
-            })
-        ).data;
+        return (await this.api.post(this.baseUrl, link)).data;
     }
     async get(id) {
         return (await this.api.get(`${this.baseUrl}/${id}`)).data;
+    }
+    async guest() {
+        return (await this.api.get(`${url}/api/guest`)).data;
     }
     async update(link) {
         return (await this.api.put(`${this.baseUrl}/${link.id}`, link)).data;

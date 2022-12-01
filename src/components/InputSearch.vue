@@ -15,18 +15,18 @@ export default {
 };
 </script>
 <template>
-    <div class="input-group">
+    <div class="input-group my-2 mx-md-5">
         <input
             type="text"
             class="form-control"
-            placeholder="Input what you want to find"
+            placeholder="Search"
             :value="modelValue"
             @input="updateModelValue"
             @keyup.enter="submit"
         />
         <div class="input-group-append">
             <button
-                class="btn btn-outline-secondary"
+                class="btn btn-outline-success"
                 type="button"
                 @click="submit"
             >

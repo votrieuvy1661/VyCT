@@ -1,6 +1,6 @@
 import { createWebHistory, createRouter } from "vue-router";
 import UserBook from "@/views/UserBook.vue";
-import LinkPage from "@/views/LinkPage.vue";
+import ItemPage from "@/views/ItemPage.vue";
 
 const routes = [
     {
@@ -30,9 +30,9 @@ const routes = [
         props: (route) => ({ userId: parseInt(route.params.id) }),
     },
     {
-        path: "/links",
-        name: "link",
-        component: LinkPage,
+        path: "/items",
+        name: "item",
+        component: ItemPage,
     },
     {
         path: "/:pathMatch(.*)*",
